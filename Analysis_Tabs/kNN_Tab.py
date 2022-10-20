@@ -30,6 +30,8 @@ def kNN_Main(dataset):
     with col1:
         #Allow User to Select k value, defaults to 1
         k = st.number_input("Choose a k-value:",min_value = 1, value = 1, step = 1)
+        distance_options = ['cityblock','cosine','euclidean','haversine','l1','l2','manhattan','nan_euclidean', 'minkowski']
+        distance_choice=st.selectbox('Choose distance formula:', distance_options,8)
     #Second Column
     with col2:
         #Spacers
@@ -42,7 +44,7 @@ def kNN_Main(dataset):
         #get start time
         startTime = time.time()
         #Declare and fit model using the k and the data that the user selected
-        knn = KNeighborsClassifier(k)
+        knn = KNeighborsClassifier(k, metric=distance_choice)
         knn = knn.fit(X_train, y_train)
         #Display the testing and training accuracy to the user
         st.write("Training Accuracy: " + str(np.round(100*knn.score(X_train, y_train),2)) + "%")
