@@ -135,6 +135,6 @@ def Data_Cleaning_Main(dataset,Model_Method):
     #Allow the user to select how they want to split their data, default to 30%
     split_float = st.number_input('Select Test/Train Split Percentage:',min_value = .01,max_value=.99, value = .30, step = .01)
     #Split data
-    X_train, X_test, y_train, y_test = train_test_split(X, Y, random_state = 0, test_size = split_float)
+    X_train, X_test, y_train, y_test = train_test_split(X, Y, random_state = 0, test_size = split_float,stratify=Y)
     #Return a tuple of different dataframes
     return X_train, X_test, y_train, y_test
