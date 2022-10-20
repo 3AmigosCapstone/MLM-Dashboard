@@ -12,6 +12,7 @@ from Analysis_Tabs.kNN_Tab import *
 from Analysis_Tabs.LR_Tab import *
 from Analysis_Tabs.NB_Tab import *
 from Analysis_Tabs.SVM_Tab import *
+from Analysis_Tabs.RandForest_Tab import *
 
 #Main Page Function Defintion
 def Mushroom_Main():
@@ -35,7 +36,7 @@ def Mushroom_Main():
     Sidebar_Main()
 
     #This creates an input where the user can select what type of machine learning model they can use
-    Model_Type = st.selectbox("What type of model would you like to build?",['k-Nearest Neighbors','Naive Bayes','Support Vector Machine','Decision Tree','Logistic Regression'])
+    Model_Type = st.selectbox("What type of model would you like to build?",['k-Nearest Neighbors','Naive Bayes','Support Vector Machine','Decision Tree','Logistic Regression', 'Random Forest'])
 
     #This takes the user's input and runs the function that generates the interface that the user needs to build the selected machine learning model
     if Model_Type == 'k-Nearest Neighbors':
@@ -53,6 +54,9 @@ def Mushroom_Main():
     elif Model_Type == 'Logistic Regression':
         #Calls a function that comes from the LR_Tab.py script for creating a Logistic Regression Model
         LR_Main(dataset)
+    elif Model_Type == 'Random Forest':
+        #Calls a function that comes from the RandForest_Tab.py script for creating a random forest Model
+        RandomForest_Main(dataset)
 
 #Calls the function above to show everything
 Mushroom_Main()
