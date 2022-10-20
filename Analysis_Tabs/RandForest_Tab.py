@@ -9,6 +9,7 @@ from sklearn.metrics import accuracy_score
 import pandas as pd
 import time
 import matplotlib.pyplot as plt
+from sklearn.model_selection import GridSearchCV
 
 from data_cleaner import *
 
@@ -57,61 +58,86 @@ def RandomForest_Main(dataset):
         endTime = time.time()
         st.write("Time to Run: " + str(np.round(endTime-startTime,4)) + " Seconds")
     st.write("___")
-
-    # #Allow user to grid search their model for the best k value
-    # st.header("Grid Search Your Model")
-    # #Allow user to select the starting and ending k values for the grid search
-    # grid_start = int(st.number_input('Starting k:',value = 1, min_value = 1,step=1))
-    # grid_end = st.number_input('Starting k:',value = int(grid_start + 10), min_value = int(grid_start+1),step=1)
-    # #Once the user clicks this button, the grid search will run
-    # grid_search_button = st.button("Run Grid Search")
-    # #Run the grid search
-    # if grid_search_button:
-    #     #get start time for grid search
-    #     startTime = time.time()
-    #     #create the first model in the grid search. Train it and set it as the current best k-value.
-    #     best_k = grid_start
-    #     knn = KNeighborsClassifier(grid_start)
-    #     knn.fit(X_train, y_train)
-    #     #Create a list of the training and testing accuracy for the first k value, set the current scores as the best scores
-    #     train_score_array = [knn.score(X_train, y_train)]
-    #     test_score_array = [knn.score(X_test, y_test)]
-    #     best_k_train_score = train_score_array[0]
-    #     best_k_test_score = test_score_array[0]
-    #     #Create a list of k values that will serve as an x-axis for the plot of accuracies
-    #     x_axis = [grid_start]
-    #     #iterate through the remaining k values in the grid search
-    #     for x in range(grid_start+1,grid_end+1):
-    #         #Add k-value to list of k-values
-    #         x_axis.append(x)
-    #         #Declare and train model
-    #         knn = KNeighborsClassifier(x)
-    #         knn.fit(X_train, y_train)
-    #         #add accuracies to lists of accuracies
-    #         train_score_array.append(knn.score(X_train, y_train))
-    #         test_score_array.append(knn.score(X_test, y_test))
-    #         #If the training score for the current k-value is better than the best k-value score, set the current k-value and its scores as the new best
-    #         if (train_score_array[-1] > best_k_train_score):
-    #             best_k = x
-    #             best_k_train_score = train_score_array[-1]
-    #             best_k_test_score = test_score_array[-1]
-    #     #Creates 2 columns for aesthetics
-    #     col3, col4 = st.columns([3,4])
-    #     # First Column
-    #     with col3:
-    #         #Create a plot of the testing and training accuracies for each k-value
-    #         fig, ax = plt.subplots(figsize=(12, 4))
-    #         ax.plot(x_axis, train_score_array , label = "Train Score", c= "g")
-    #         ax.plot(x_axis, test_score_array, label = "Test Score", c= "b")
-    #         ax.set_title("What is our best k?")
-    #         ax.set_xlabel('k')
-    #         ax.set_ylabel('Accuracy')
-    #         ax.legend()
-    #         st.pyplot(fig)
-    #     with col4:
-    #         #Display k value, training accuracy, and testing accuracy of the best model, as well as how long it took to run the grid search
-    #         st.subheader("Best k: " + str(int(best_k)))
-    #         st.write("Best k Training Accuracy: " + str(np.round(100*best_k_train_score,2)) + "%")
-    #         st.write("Best k Testing Accuracy: " + str(np.round(100*best_k_test_score,2)) + "%")
-    #         endTime = time.time()
-    #         st.write("Time to Run Grid Search: " + str(np.round(endTime-startTime,4)) + " Seconds")
+    #Allow user to grid search their linear_model
+    st.header("Grid Search Your Model")
+    st.write("*Note: Grid Search on Random Forest can take a considerable amount of time depending on the number of parameters to test.*")
+    #Create 4 columns for aesthetics
+    col5, col6, col7, col8,col9 = st.columns([2,2,2,2,1])
+    #First Column
+    with col5:
+        #Allow user to select max features
+        max_feature_list = []
+        st.write("Select Max Features:")
+        for x in ['auto','sqrt','log2']:
+            if st.checkbox(x,value=True):
+                max_feature_list.append(x)
+    #Second Column
+    with col6:
+#        Allow user to select max features
+        criterion_list = []
+        st.write("Select Criterion:")
+        for x in ['gini','entropy']:
+            if st.checkbox(x,value=True):
+                criterion_list.append(x)
+    #Third Column
+    with col7:
+        #Allow user to select c values. Let them choose a minimum, maximum, and the size of the interval in between steps
+        c_interval = st.number_input("Select Estimator Number Interval Size:", min_value = 1, value = 1)
+        c_min = st.number_input('Minimum Number of Estimators: ',min_value=1,value=1,step = 1)
+        c_max = st.number_input('Maximim Number of Estimators: ',min_value=int(c_min),value=int(c_min + c_interval),step = int(c_interval))
+        #If the max and min are at least one interval apart, create a list of c values that contains as many intervals as possible between the max and min
+        if c_max-c_min >= c_interval:
+            c_values = []
+            c_i = c_min
+            while c_i <= c_max:
+                c_values.append(c_i)
+                c_i += c_interval
+    #Third Column
+    with col8:
+        #Allow user to select gamma values. Let them choose a minimum, maximum, and the size of the interval in between steps
+        gamma_interval = st.number_input("Select Max Depth Interval Size:",min_value = 1, value = 1)
+        gamma_min = st.number_input('Minimum Gamma: ',min_value=1,value=1,step = 1)
+        gamma_max = st.number_input('Maximum Gamma: ',min_value=int(gamma_min),value=int(gamma_min + gamma_interval),step = int(gamma_interval))
+        #If the max and min are at least one interval apart, create a list of c values that contains as many intervals as possible between the max and min
+        if gamma_max-gamma_min >= gamma_interval:
+            gamma_values = []
+            gamma_i = gamma_min
+            while gamma_i <= gamma_max:
+                gamma_values.append(gamma_i)
+                gamma_i += gamma_interval
+    #Fourth Column
+    with col9:
+        #Make sure the data works by ensuring that there is at least one kernel, and that the intervals, maximums, and minimums work together
+        if len(max_feature_list) == 0:
+            st.warning("Must select at least one max feature")
+        elif len(criterion_list) == 0:
+            st.warning("Must select at least one criterion")
+        elif c_max-c_min < c_interval:
+            st.warning("Estimator Number Minimum and Maxmimum must contain at least one interval")
+        elif gamma_max-gamma_min < gamma_interval:
+            st.warning("Max Depth Minimum and Maxmimum must contain at least one interval")
+        #If the selected options are all valid, create a button that will run the grid search when the user clicks it
+        else:
+            grid_search_button = st.button("Run Grid Search")
+    #Run the Grid search
+    if grid_search_button:
+        #get start time
+        startTime = time.time()
+        #Create a parameter grid based on the users selections
+        param_grid = {'max_features' : max_feature_list, 'criterion':criterion_list,'n_estimators':c_values,'max_depth':gamma_values}
+        #Perform the grid search
+        grid_search = GridSearchCV(RandomForestClassifier(), param_grid, return_train_score = True)
+        grid_search.fit(X_train, y_train)
+        #Get the best parameters for the grid search
+        best_params = grid_search.best_params_
+        #Display the best parameters to the user
+        st.subheader("Best Max Features: " + best_params['max_features'])
+        st.subheader("Best Criterion: " + str(best_params['criterion']))
+        st.subheader("Best Number of Estimators Value: " + str(best_params['n_estimators']))
+        st.subheader("Best Max Depth: " + str(best_params['max_depth']))
+        #Display the Training and testing accuracy of the best model to the user
+        st.subheader("Training Accuracy:" + str(np.round(100*grid_search.score(X_train, y_train),2)) + "%")
+        st.subheader("Testing Accuracy:" + str(np.round(100*grid_search.score(X_test, y_test),2)) + "%" )
+        #Display how long it took to run the grid search
+        endTime = time.time()
+        st.write("Time to Run Grid Search: " + str(np.round(endTime-startTime,4)) + " Seconds")
